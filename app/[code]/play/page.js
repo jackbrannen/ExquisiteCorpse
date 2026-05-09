@@ -289,18 +289,6 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
 
   return (
     <div ref={containerRef}>
-      {/* Peek strip (previous player's art below their fold line) */}
-      {peekImageUrl && peekHeight > 0 && (
-        <div style={{ width: "100%", height: peekHeight, overflow: "hidden", position: "relative", borderRadius: "6px 6px 0 0" }}>
-          <img
-            src={peekImageUrl}
-            alt="Previous drawing"
-            crossOrigin="anonymous"
-            style={{ width: "100%", position: "absolute", bottom: 0, display: "block" }}
-          />
-        </div>
-      )}
-
       {/* Tool bar */}
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 0 8px" }}>
         <button
@@ -385,12 +373,26 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
         ))}
       </div>
 
-      {/* Canvas + fold line overlay */}
-      <div
-        ref={canvasContainerRef}
-        style={{ width: "100%", position: "relative", borderRadius: peekImageUrl && peekHeight > 0 ? "0 0 6px 6px" : 6, overflow: "hidden", background: "#fff", cursor: toolMode === "bucket" ? "crosshair" : "default" }}
-      >
-        <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
+      {/* Peek strip + Canvas block */}
+      <div style={{ borderRadius: 6, overflow: "hidden" }}>
+        {/* Peek strip — physically attached to canvas top */}
+        {peekImageUrl && peekHeight > 0 && (
+          <div style={{ width: "100%", height: peekHeight, overflow: "hidden", position: "relative", background: "#fff" }}>
+            <img
+              src={peekImageUrl}
+              alt="Previous drawing"
+              crossOrigin="anonymous"
+              style={{ width: "100%", position: "absolute", bottom: 0, display: "block" }}
+            />
+          </div>
+        )}
+
+        {/* Canvas + fold line overlay */}
+        <div
+          ref={canvasContainerRef}
+          style={{ width: "100%", position: "relative", background: "#fff", cursor: toolMode === "bucket" ? "crosshair" : "default" }}
+        >
+          <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
 
         {/* Fold line */}
         <div style={{ position: "absolute", left: 0, right: 0, top: `${foldPct * 100}%`, zIndex: 10, pointerEvents: "none" }}>
@@ -446,6 +448,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
             Drag the fold line — the next player only sees what falls below it.
           </div>
         )}
+        </div>
       </div>
     </div>
   )
