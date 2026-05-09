@@ -291,21 +291,13 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
     <div ref={containerRef}>
       {/* Peek strip (previous player's art below their fold line) */}
       {peekImageUrl && peekHeight > 0 && (
-        <div>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.14em", color: "rgba(255,255,255,0.4)", textAlign: "center", padding: "8px 0 6px" }}>
-            ↑ previous drawing
-          </div>
-          <div style={{ width: "100%", height: peekHeight, overflow: "hidden", position: "relative", borderRadius: "6px 6px 0 0" }}>
-            <img
-              src={peekImageUrl}
-              alt="Previous drawing"
-              crossOrigin="anonymous"
-              style={{ width: "100%", position: "absolute", bottom: 0, display: "block" }}
-            />
-          </div>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.14em", color: "rgba(255,255,255,0.35)", textAlign: "center", padding: "5px 0 4px", borderTop: "1px solid rgba(255,255,255,0.15)", borderBottom: "1px solid rgba(255,255,255,0.15)", marginBottom: 2 }}>
-            your canvas starts here
-          </div>
+        <div style={{ width: "100%", height: peekHeight, overflow: "hidden", position: "relative", borderRadius: "6px 6px 0 0" }}>
+          <img
+            src={peekImageUrl}
+            alt="Previous drawing"
+            crossOrigin="anonymous"
+            style={{ width: "100%", position: "absolute", bottom: 0, display: "block" }}
+          />
         </div>
       )}
 
@@ -396,7 +388,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
       {/* Canvas + fold line overlay */}
       <div
         ref={canvasContainerRef}
-        style={{ width: "100%", position: "relative", borderRadius: peekImageUrl ? "0 0 8px 8px" : 8, overflow: "hidden", background: "#fff", cursor: toolMode === "bucket" ? "crosshair" : "default" }}
+        style={{ width: "100%", position: "relative", borderRadius: peekImageUrl && peekHeight > 0 ? "0 0 6px 6px" : 6, overflow: "hidden", background: "#fff", cursor: toolMode === "bucket" ? "crosshair" : "default" }}
       >
         <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
 
@@ -586,9 +578,10 @@ export default function Play({ params }) {
       .filter(c => c.drawings.length > 0)
   }, [players, drawings])
 
-  // Reset canvas dirty state + ideas when round changes
+  // Reset per-round UI state when round changes
   useEffect(() => {
     setCanvasDirty(false)
+    setSubmitting(false)
     setShownIdeas([])
   }, [currentRound])
 
