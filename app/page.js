@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../lib/supabase"
 
-const BG = "#6B1A1A"
+const BG = "#1A3A5C"
 const YELLOW = "#FBDF54"
 
 const WORDS_A = [

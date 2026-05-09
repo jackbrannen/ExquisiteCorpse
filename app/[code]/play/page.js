@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
-const BG = "#6B1A1A"
+const BG = "#1A3A5C"
 const YELLOW = "#FBDF54"
 
 const PALETTE = [
@@ -66,6 +66,9 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
   const onFirstMarkRef = useRef(onFirstMark)
   onFirstMarkRef.current = onFirstMark
   const firstMarkFiredRef = useRef(false)
+  const peekHeightRef = useRef(0)
+  const squareSizeRef = useRef(0)
+  const peekFabricImgRef = useRef(null)
 
   const [color, setColorState] = useState("#000000")
   const [brushSize, setBrushSize] = useState(8)
@@ -88,11 +91,31 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
   const peekHeight = peekImageUrl && squareSize > 0
     ? Math.round((1 - peekFoldPct) * squareSize)
     : 0
+  const totalCanvasHeight = peekHeight + squareSize
+  const foldLinePct = totalCanvasHeight > 0
+    ? (peekHeight + foldPct * squareSize) / totalCanvasHeight * 100
+    : foldPct * 100
 
   function fireFirstMark() {
     if (!firstMarkFiredRef.current) {
       firstMarkFiredRef.current = true
       onFirstMarkRef.current?.()
+    }
+  }
+
+  // Export only the player's new square area (cropped below peek strip)
+  function makeExportFn(cv) {
+    return () => {
+      const peekH = peekHeightRef.current
+      const sq = squareSizeRef.current
+      if (peekH === 0) {
+        return { dataUrl: cv.toDataURL({ format: "jpeg", quality: 0.72 }), foldPct: foldPctRef.current }
+      }
+      const rawCanvas = cv.getElement()
+      const off = document.createElement("canvas")
+      off.width = sq; off.height = sq
+      off.getContext("2d").drawImage(rawCanvas, 0, peekH, sq, sq, 0, 0, sq, sq)
+      return { dataUrl: off.toDataURL("image/jpeg", 0.72), foldPct: foldPctRef.current }
     }
   }
 
@@ -115,6 +138,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
         fabricLib.Image.fromURL(filledUrl, (fabricImg) => {
           cv.clear()
           cv.backgroundColor = "#ffffff"
+          // Peek is already baked into filledUrl from toDataURL — don't re-add the peek object
           fabricImg.set({ selectable: false, evented: false, left: 0, top: 0, scaleX: 1, scaleY: 1 })
           cv.add(fabricImg)
           cv.renderAll()
@@ -142,15 +166,43 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
 
       const w = containerRef.current.clientWidth
       setSquareSize(w)
+      squareSizeRef.current = w
+
+      const effectivePeekH = peekImageUrl ? Math.round((1 - peekFoldPct) * w) : 0
+      peekHeightRef.current = effectivePeekH
 
       canvas = new fabric.Canvas(canvasRef.current, {
         isDrawingMode: true,
         width: w,
-        height: w,
+        height: effectivePeekH + w,
         backgroundColor: "#ffffff",
       })
       canvas.freeDrawingBrush.color = "#000000"
       canvas.freeDrawingBrush.width = 8
+
+      // Load peek image into the Fabric canvas so players can draw on top of it
+      if (peekImageUrl && effectivePeekH > 0) {
+        fabric.Image.fromURL(peekImageUrl, (img) => {
+          if (!img || cancelled) return
+          const scale = w / img.width
+          const cropSrcH = Math.round(effectivePeekH / scale)
+          const cropSrcY = Math.max(0, img.height - cropSrcH)
+          img.set({
+            selectable: false,
+            evented: false,
+            left: 0,
+            top: 0,
+            scaleX: scale,
+            scaleY: scale,
+            cropY: cropSrcY,
+            height: Math.min(img.height, cropSrcH),
+          })
+          peekFabricImgRef.current = img
+          canvas.add(img)
+          canvas.renderAll()
+          historyRef.current.push(JSON.stringify(canvas.toJSON()))
+        }, { crossOrigin: "anonymous" })
+      }
 
       canvas.on("path:created", () => {
         historyRef.current.push(JSON.stringify(canvas.toJSON()))
@@ -165,28 +217,22 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
       })
 
       fabricRef.current = canvas
-
-      onExportRef.current(() => ({
-        dataUrl: canvas.toDataURL({ format: "jpeg", quality: 0.72 }),
-        foldPct: foldPctRef.current,
-      }))
+      onExportRef.current(makeExportFn(canvas))
     })()
 
     return () => {
       cancelled = true
       fabricRef.current?.dispose()
       fabricRef.current = null
+      peekFabricImgRef.current = null
     }
   }, [])
 
-  // Expose export fn whenever foldPct changes
+  // Re-expose export fn whenever foldPct changes
   useEffect(() => {
-    if (!fabricRef.current) return
     const cv = fabricRef.current
-    onExportRef.current(() => ({
-      dataUrl: cv.toDataURL({ format: "jpeg", quality: 0.72 }),
-      foldPct: foldPctRef.current,
-    }))
+    if (!cv) return
+    onExportRef.current(makeExportFn(cv))
   }, [foldPct])
 
   // Auto-dismiss fold hint
@@ -205,7 +251,10 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
       const rect = canvasContainerRef.current?.getBoundingClientRect()
       if (!rect) return
       const relY = clientY - rect.top
-      const pct = relY / rect.height
+      const peekH = peekHeightRef.current
+      const sq = squareSizeRef.current
+      if (sq === 0) return
+      const pct = (relY - peekH) / sq
       const clamped = Math.max(0.70, Math.min(0.90, pct))
       setFoldPct(clamped)
       foldPctRef.current = clamped
@@ -261,8 +310,13 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
     redoStackRef.current.push(last)
     const cv = fabricRef.current
     if (!cv) return
-    if (hist.length === 0) { cv.clear(); cv.backgroundColor = "#ffffff"; cv.renderAll() }
-    else cv.loadFromJSON(JSON.parse(hist[hist.length - 1]), () => cv.renderAll())
+    if (hist.length === 0) {
+      cv.clear(); cv.backgroundColor = "#ffffff"
+      if (peekFabricImgRef.current) cv.add(peekFabricImgRef.current)
+      cv.renderAll()
+    } else {
+      cv.loadFromJSON(JSON.parse(hist[hist.length - 1]), () => cv.renderAll())
+    }
   }
 
   function handleRedo() {
@@ -278,11 +332,14 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
   function handleClear() {
     const cv = fabricRef.current
     if (!cv) return
-    if (cv.getObjects().length > 0) {
+    const nonPeekObjs = cv.getObjects().filter(obj => obj !== peekFabricImgRef.current)
+    if (nonPeekObjs.length > 0) {
       historyRef.current.push(JSON.stringify(cv.toJSON()))
       redoStackRef.current = []
     }
-    cv.clear(); cv.backgroundColor = "#ffffff"; cv.renderAll()
+    cv.clear(); cv.backgroundColor = "#ffffff"
+    if (peekFabricImgRef.current) cv.add(peekFabricImgRef.current)
+    cv.renderAll()
   }
 
   const BRUSH_SIZES = [2, 4, 8, 14, 22, 34, 52]
@@ -373,37 +430,22 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
         ))}
       </div>
 
-      {/* Peek strip + Canvas block */}
-      <div style={{ borderRadius: 6, overflow: "hidden" }}>
-        {/* Peek strip — physically attached to canvas top */}
-        {peekImageUrl && peekHeight > 0 && (
-          <div style={{ width: "100%", height: peekHeight, overflow: "hidden", position: "relative", background: "#fff" }}>
-            <img
-              src={peekImageUrl}
-              alt="Previous drawing"
-              crossOrigin="anonymous"
-              style={{ width: "100%", position: "absolute", bottom: 0, display: "block" }}
-            />
-          </div>
-        )}
-
-        {/* Canvas + fold line overlay */}
-        <div
-          ref={canvasContainerRef}
-          style={{ width: "100%", position: "relative", background: "#fff", cursor: toolMode === "bucket" ? "crosshair" : "default" }}
-        >
-          <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
+      {/* Canvas — peek strip is loaded as a locked Fabric image at top so players can draw on top of it */}
+      <div
+        ref={canvasContainerRef}
+        style={{ width: "100%", position: "relative", background: "#fff", cursor: toolMode === "bucket" ? "crosshair" : "default", borderRadius: 6, overflow: "hidden" }}
+      >
+        <canvas ref={canvasRef} style={{ display: "block", touchAction: "none" }} />
 
         {/* Fold line */}
-        <div style={{ position: "absolute", left: 0, right: 0, top: `${foldPct * 100}%`, zIndex: 10, pointerEvents: "none" }}>
-          <div style={{ borderTop: "2px dashed rgba(120,30,30,0.75)", width: "100%" }} />
-          {/* Handle */}
+        <div style={{ position: "absolute", left: 0, right: 0, top: `${foldLinePct}%`, zIndex: 10, pointerEvents: "none" }}>
+          <div style={{ borderTop: "2px dashed rgba(26,58,92,0.75)", width: "100%" }} />
           <div
             style={{
               position: "absolute",
               right: 0,
               top: -14,
-              background: "rgba(107,26,26,0.9)",
+              background: "rgba(26,58,92,0.9)",
               color: "white",
               fontSize: 10,
               fontWeight: 800,
@@ -433,10 +475,10 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
         {showFoldHint && (
           <div style={{
             position: "absolute",
-            top: `calc(${foldPct * 100}% - 40px)`,
+            top: `calc(${foldLinePct}% - 40px)`,
             left: 12,
             right: 56,
-            background: "rgba(107,26,26,0.92)",
+            background: "rgba(26,58,92,0.92)",
             color: "rgba(255,255,255,0.9)",
             fontSize: 12,
             fontWeight: 600,
@@ -448,7 +490,6 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
             Drag the fold line — the next player only sees what falls below it.
           </div>
         )}
-        </div>
       </div>
     </div>
   )
