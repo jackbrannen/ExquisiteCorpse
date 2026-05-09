@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 
-const BG = "#3B0764"
+const BG = "#6B1A1A"
 const YELLOW = "#FBDF54"
 const MIN_PLAYERS = 4
 

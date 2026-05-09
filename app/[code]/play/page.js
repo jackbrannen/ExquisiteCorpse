@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { supabase } from "../../../lib/supabase"
 
-const BG = "#3B0764"
+const BG = "#6B1A1A"
 const YELLOW = "#FBDF54"
 
 const PALETTE = [
@@ -394,14 +394,14 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
 
         {/* Fold line */}
         <div style={{ position: "absolute", left: 0, right: 0, top: `${foldPct * 100}%`, zIndex: 10, pointerEvents: "none" }}>
-          <div style={{ borderTop: "2px dashed rgba(80,0,120,0.75)", width: "100%" }} />
+          <div style={{ borderTop: "2px dashed rgba(120,30,30,0.75)", width: "100%" }} />
           {/* Handle */}
           <div
             style={{
               position: "absolute",
               right: 0,
               top: -14,
-              background: "rgba(59,7,100,0.9)",
+              background: "rgba(107,26,26,0.9)",
               color: "white",
               fontSize: 10,
               fontWeight: 800,
@@ -434,7 +434,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
             top: `calc(${foldPct * 100}% - 40px)`,
             left: 12,
             right: 56,
-            background: "rgba(59,7,100,0.92)",
+            background: "rgba(107,26,26,0.92)",
             color: "rgba(255,255,255,0.9)",
             fontSize: 12,
             fontWeight: 600,

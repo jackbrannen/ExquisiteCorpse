@@ -8,7 +8,7 @@ the other games.
 
 ## Meta
 
-**Proposed primary color:** `#3B0764` (deep violet)  
+**Proposed primary color:** `#6B1A1A` (dark red)  
 **Accent color:** `#FBDF54` (universal yellow — do not change)  
 **Minimum players:** 4  
 **Rounds per game:** One per player (4 players = 4 rounds, each player draws 4 times)
