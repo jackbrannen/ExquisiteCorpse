@@ -103,20 +103,12 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
     }
   }
 
-  // Export only the player's new square area (cropped below peek strip)
+  // Export the full canvas (peek strip + new square) so stored images overlap correctly in the reveal
   function makeExportFn(cv) {
-    return () => {
-      const peekH = peekHeightRef.current
-      const sq = squareSizeRef.current
-      if (peekH === 0) {
-        return { dataUrl: cv.toDataURL({ format: "jpeg", quality: 0.72 }), foldPct: foldPctRef.current }
-      }
-      const rawCanvas = cv.getElement()
-      const off = document.createElement("canvas")
-      off.width = sq; off.height = sq
-      off.getContext("2d").drawImage(rawCanvas, 0, peekH, sq, sq, 0, 0, sq, sq)
-      return { dataUrl: off.toDataURL("image/jpeg", 0.72), foldPct: foldPctRef.current }
-    }
+    return () => ({
+      dataUrl: cv.toDataURL({ format: "jpeg", quality: 0.72 }),
+      foldPct: foldPctRef.current,
+    })
   }
 
   const doBucketFill = useCallback(async (x, y) => {
@@ -797,112 +789,66 @@ export default function Play({ params }) {
   if (game.phase === "reveal") {
     const allStepsRevealed = currentRevealStep >= n - 1
     const isLastChain = currentRevealChain >= revealOrder.length - 1
+    const visibleDrawings = currentRevealStep >= 0
+      ? currentChainDrawings.slice(0, currentRevealStep + 1)
+      : []
 
-    if (currentRevealStep === -1 && !amPresenter) {
-      return (
-        <div style={{ minHeight: "100dvh", background: BG, color: "white", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 24px", textAlign: "center" }}>
-          <div style={{ fontSize: 13, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.5, marginBottom: 16 }}>REVEAL PHASE</div>
-          <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 8 }}>
-            {currentPresenterPlayer?.name} is revealing their chain!
-          </h2>
-          <p style={{ fontSize: 16, opacity: 0.55, fontWeight: 500 }}>Get ready…</p>
-        </div>
-      )
-    }
-
-    if (currentRevealStep === -1 && amPresenter) {
-      return (
-        <div style={{ minHeight: "100dvh", background: BG, color: "white", display: "flex", flexDirection: "column", padding: "40px 24px" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 8 }}>YOUR CHAIN</div>
-          <h2 style={{ fontSize: 28, fontWeight: 900, marginBottom: 24, letterSpacing: "-0.5px" }}>Time to reveal.</h2>
-          <p style={{ fontSize: 16, opacity: 0.65, fontWeight: 500, marginBottom: 32 }}>
-            Tap Reveal to show each layer to the group, one at a time.
-          </p>
-          <button
-            onClick={handleAdvanceReveal}
-            disabled={advancing}
-            style={{ background: YELLOW, color: "#000", fontSize: 22, fontWeight: 900, padding: "22px", width: "100%", display: "block", borderRadius: 8 }}
-          >
-            Reveal My Chain
-          </button>
-        </div>
-      )
-    }
-
-    // Audience view
-    if (!amPresenter) {
-      const visibleDrawings = currentChainDrawings.slice(0, currentRevealStep + 1)
-      return (
-        <div style={{ minHeight: "100dvh", background: BG, color: "white" }}>
-          <div style={{ padding: "28px 24px 20px", background: "rgba(0,0,0,0.3)" }}>
-            <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>
-              CHAIN {currentRevealChain + 1} OF {revealOrder.length}
-            </div>
-            <div style={{ fontSize: 22, fontWeight: 900 }}>{currentPresenterPlayer?.name}'s chain</div>
-          </div>
-          <div style={{ padding: "16px 24px 48px" }}>
-            <StitchedChain drawings={visibleDrawings} players={players} squareSize={null} />
-            {!allStepsRevealed && (
-              <div style={{ fontSize: 15, opacity: 0.45, fontWeight: 600, textAlign: "center", marginTop: 24 }}>
-                Layer {currentRevealStep + 1} of {n} revealed · Waiting for {currentPresenterPlayer?.name}…
-              </div>
-            )}
-          </div>
-        </div>
-      )
-    }
-
-    // Presenter view
+    // Everyone sees the same chain view; only the presenter gets the control button
     return (
-      <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: allStepsRevealed ? 100 : 0 }}>
+      <div style={{ minHeight: "100dvh", background: BG, color: "white", paddingBottom: amPresenter ? 88 : 32 }}>
+        {/* Header — identical for everyone */}
         <div style={{ padding: "28px 24px 20px", background: "rgba(0,0,0,0.3)" }}>
-          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>YOUR CHAIN</div>
-          <div style={{ fontSize: 22, fontWeight: 900 }}>Tap Reveal to show each layer.</div>
+          <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.18em", opacity: 0.45, marginBottom: 4 }}>
+            CHAIN {currentRevealChain + 1} OF {revealOrder.length}
+          </div>
+          <div style={{ fontSize: 22, fontWeight: 900 }}>{currentPresenterPlayer?.name}'s chain</div>
         </div>
-        <div style={{ padding: "16px 24px" }}>
-          {/* Revealed layers stacked */}
-          {currentRevealStep >= 0 && (
-            <StitchedChain
-              drawings={currentChainDrawings.slice(0, currentRevealStep + 1)}
-              players={players}
-              squareSize={null}
-            />
-          )}
 
-          {/* Next-to-reveal button */}
-          {!allStepsRevealed && (
-            <div style={{ marginTop: 16 }}>
-              {currentRevealStep < 0 ? null : (
-                <div style={{ fontSize: 13, opacity: 0.45, fontWeight: 600, marginBottom: 8 }}>
-                  Layer {currentRevealStep + 1} of {n} revealed
-                </div>
+        {/* Chain view — grows in real time as presenter taps Reveal */}
+        <div style={{ padding: "16px 24px" }}>
+          {visibleDrawings.length === 0 ? (
+            <p style={{ fontSize: 16, opacity: 0.5, fontWeight: 600, textAlign: "center", paddingTop: 40 }}>
+              {amPresenter
+                ? "Tap Reveal to show the first layer."
+                : `Waiting for ${currentPresenterPlayer?.name} to start…`}
+            </p>
+          ) : (
+            <>
+              <StitchedChain drawings={visibleDrawings} players={players} />
+              {allStepsRevealed && (
+                <p style={{ fontSize: 15, opacity: 0.6, fontWeight: 600, textAlign: "center", marginTop: 20 }}>
+                  That's the full exquisite corpse!
+                </p>
               )}
+              {!allStepsRevealed && !amPresenter && (
+                <p style={{ fontSize: 14, opacity: 0.4, fontWeight: 600, textAlign: "center", marginTop: 16 }}>
+                  Waiting for {currentPresenterPlayer?.name}…
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Presenter controls — fixed to bottom */}
+        {amPresenter && (
+          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 24px", paddingBottom: "calc(16px + env(safe-area-inset-bottom))", background: BG, borderTop: "1px solid rgba(255,255,255,0.15)" }}>
+            {!allStepsRevealed ? (
               <button
                 onClick={handleAdvanceReveal}
                 disabled={advancing}
-                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "18px", width: "100%", display: "block", borderRadius: 8 }}
+                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block", borderRadius: 8 }}
               >
                 Reveal
               </button>
-            </div>
-          )}
-
-          {allStepsRevealed && (
-            <p style={{ fontSize: 15, opacity: 0.6, fontWeight: 600, textAlign: "center", marginTop: 16, marginBottom: 8 }}>
-              Layer {n} of {n} · That's the full exquisite corpse!
-            </p>
-          )}
-        </div>
-
-        {allStepsRevealed && (
-          <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, padding: "16px 24px", paddingBottom: "calc(16px + env(safe-area-inset-bottom))", background: BG, borderTop: "1px solid rgba(255,255,255,0.15)" }}>
-            <button
-              onClick={handleNextChain}
-              disabled={advancing}
-              style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block", borderRadius: 8 }}
-            >
-              {isLastChain ? "Finish →" : "Next chain →"}
-            </button>
+            ) : (
+              <button
+                onClick={handleNextChain}
+                disabled={advancing}
+                style={{ background: YELLOW, color: "#000", fontSize: 20, fontWeight: 900, padding: "20px", width: "100%", display: "block", borderRadius: 8 }}
+              >
+                {isLastChain ? "Finish →" : "Next chain →"}
+              </button>
+            )}
           </div>
         )}
       </div>
@@ -1016,52 +962,36 @@ export default function Play({ params }) {
 }
 
 // ─── StitchedChain ────────────────────────────────────────────────────────────
-// Renders drawings stacked so each new segment starts at the prior fold line.
+// Each segment overlaps the previous one: segment i starts at the fold line of
+// segment i-1. The stored image for round > 0 includes the peek strip at the top
+// (peek height = (1 - prevFoldPct) * squareSize), so a negative margin equal to
+// that peek fraction correctly aligns the images. margin-top as % is relative to
+// container width; since images are square (or near-square), this works out.
 
 function StitchedChain({ drawings, players }) {
   if (!drawings.length) return null
 
-  // Each drawing is positioned so its top aligns with the fold line of the previous drawing.
-  // Cumulative offset tracks where each segment starts (as a fraction of one square).
-  let cumulativeOffsetPct = 0
-
   return (
-    <div style={{ position: "relative", width: "100%" }}>
+    <div style={{ position: "relative", width: "100%", borderRadius: 8, overflow: "hidden" }}>
       {drawings.map((d, i) => {
         const author = players.find(p => p.id === d.author_id)
-        const startOffsetPct = cumulativeOffsetPct
-        // Next segment starts at this drawing's fold line (relative to its own start)
-        cumulativeOffsetPct += d.fold_pct
-
+        const overlapPct = i > 0 ? (1 - drawings[i - 1].fold_pct) * 100 : 0
         return (
-          <div key={d.id} style={{ marginBottom: i < drawings.length - 1 ? 0 : 0 }}>
-            {i === 0 ? (
-              // First drawing: full display
-              <div>
-                <img
-                  src={d.content}
-                  alt={`Layer ${i + 1}`}
-                  crossOrigin="anonymous"
-                  style={{ width: "100%", display: "block", borderRadius: i === drawings.length - 1 ? 8 : "8px 8px 0 0" }}
-                />
-                <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.45, padding: "4px 0 8px", textAlign: "right" }}>
-                  {author?.name ?? "?"} added this
-                </div>
-              </div>
-            ) : (
-              // Subsequent drawings: overlap with previous
-              <div style={{ marginTop: 0 }}>
-                <img
-                  src={d.content}
-                  alt={`Layer ${i + 1}`}
-                  crossOrigin="anonymous"
-                  style={{ width: "100%", display: "block", borderRadius: i === drawings.length - 1 ? "0 0 8px 8px" : 0 }}
-                />
-                <div style={{ fontSize: 12, fontWeight: 700, opacity: 0.45, padding: "4px 0 8px", textAlign: "right" }}>
-                  {author?.name ?? "?"} added this
-                </div>
-              </div>
-            )}
+          <div key={d.id} style={{ position: "relative", marginTop: i > 0 ? `-${overlapPct.toFixed(2)}%` : 0 }}>
+            <img
+              src={d.content}
+              alt={`Layer ${i + 1}`}
+              crossOrigin="anonymous"
+              style={{ width: "100%", display: "block" }}
+            />
+            {/* Author label — overlaid on the image so it's not pushed out of place by the next layer's overlap */}
+            <div style={{
+              position: "absolute", bottom: 6, right: 8,
+              background: "rgba(0,0,0,0.5)", color: "rgba(255,255,255,0.85)",
+              fontSize: 12, fontWeight: 700, padding: "3px 8px", borderRadius: 4,
+            }}>
+              {author?.name ?? "?"} added this
+            </div>
           </div>
         )
       })}
