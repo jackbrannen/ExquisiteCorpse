@@ -6,7 +6,7 @@ import { supabase } from "../lib/supabase"
 
 const BG = "#1A3A5C"
 const YELLOW = "#FBDF54"
-const WARM_LIGHT = "#205673"
+const WARM_LIGHT = "#276994"
 
 const WORDS_A = [
   "MAPLE","RIVER","OCEAN","VELVET","COPPER","SILVER","EMBER","FOREST","CLOUD",
