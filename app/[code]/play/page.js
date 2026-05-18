@@ -6,6 +6,7 @@ import { supabase } from "../../../lib/supabase"
 
 const BG = "#1A3A5C"
 const YELLOW = "#FBDF54"
+const WARM_LIGHT = "#205673"
 
 const PALETTE = [
   "#000000","#2D2D2D","#666666","#AAAAAA","#DDDDDD","#FFFFFF",
@@ -342,7 +343,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
       <div style={{ display: "flex", alignItems: "center", gap: 6, padding: "10px 0 8px" }}>
         <button
           onClick={() => handleSetTool("pen")}
-          style={{ background: toolMode === "pen" ? YELLOW : "rgba(255,255,255,0.15)", color: toolMode === "pen" ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+          style={{ background: toolMode === "pen" ? YELLOW : WARM_LIGHT, color: toolMode === "pen" ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
@@ -350,7 +351,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
         </button>
         <button
           onClick={() => handleSetTool(toolMode === "eraser" ? "pen" : "eraser")}
-          style={{ background: toolMode === "eraser" ? YELLOW : "rgba(255,255,255,0.15)", color: toolMode === "eraser" ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+          style={{ background: toolMode === "eraser" ? YELLOW : WARM_LIGHT, color: toolMode === "eraser" ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>
@@ -358,23 +359,23 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
         </button>
         <button
           onClick={() => handleSetTool(toolMode === "bucket" ? "pen" : "bucket")}
-          style={{ background: toolMode === "bucket" ? YELLOW : "rgba(255,255,255,0.15)", color: toolMode === "bucket" ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
+          style={{ background: toolMode === "bucket" ? YELLOW : WARM_LIGHT, color: toolMode === "bucket" ? "#000" : "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m19 11-8-8-8.5 8.5a5.5 5.5 0 0 0 7.78 7.78Z"/><path d="m5 3 5 5"/><path d="M22 22c0-1.2-.2-2-.8-3-1.4 0-2.2 1.8-2.2 3"/>
           </svg>
         </button>
-        <button onClick={handleUndo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleUndo} style={{ background: WARM_LIGHT, color: "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
           </svg>
         </button>
-        <button onClick={handleRedo} style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleRedo} style={{ background: WARM_LIGHT, color: "white", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 7v6h-6"/><path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6 2.3L21 13"/>
           </svg>
         </button>
-        <button onClick={handleClear} style={{ background: "rgba(255,255,255,0.10)", color: "rgba(255,255,255,0.6)", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+        <button onClick={handleClear} style={{ background: WARM_LIGHT, color: "rgba(255,255,255,0.6)", width: 44, height: 44, borderRadius: 8, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
           </svg>
@@ -393,7 +394,7 @@ function DrawingCanvas({ peekImageUrl, peekFoldPct, onExport, onFirstMark }) {
               disabled={toolMode === "bucket"}
               style={{
                 width: 38, height: 38, borderRadius: 6, flexShrink: 0,
-                background: isActive && toolMode !== "bucket" ? "rgba(255,255,255,0.18)" : "transparent",
+                background: isActive && toolMode !== "bucket" ? WARM_LIGHT : "transparent",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 border: isActive && toolMode !== "bucket" ? `2px solid ${YELLOW}` : "2px solid transparent",
               }}
@@ -745,7 +746,7 @@ export default function Play({ params }) {
           <p style={{ fontSize: 16, opacity: 0.65, fontWeight: 500, marginBottom: 28 }}>This is your reminder to take screenshots.</p>
           <button
             onClick={() => router.replace(`/${code}`)}
-            style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 16, fontWeight: 700, padding: "16px 28px", borderRadius: 8 }}
+            style={{ background: WARM_LIGHT, color: "white", fontSize: 16, fontWeight: 700, padding: "16px 28px", borderRadius: 8 }}
           >Back to lobby</button>
         </div>
 
@@ -760,7 +761,7 @@ export default function Play({ params }) {
                 <button
                   key={chain.owner.id}
                   onClick={() => setSelectedChainOwner(chain.owner.id)}
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: 0, overflow: "hidden", textAlign: "left", color: "white", display: "block" }}
+                  style={{ background: WARM_LIGHT, border: "1px solid rgba(255,255,255,0.12)", borderRadius: 10, padding: 0, overflow: "hidden", textAlign: "left", color: "white", display: "block" }}
                 >
                   {firstDrawing?.content && (
                     <img src={firstDrawing.content} alt="" style={{ width: "100%", display: "block" }} />
@@ -937,19 +938,19 @@ export default function Play({ params }) {
             <button
               onClick={handleGetIdeas}
               disabled={loadingIdeas}
-              style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 15, fontWeight: 800, padding: "14px 18px", width: "100%", marginBottom: shownIdeas.length ? 12 : 0, borderRadius: 6 }}
+              style={{ background: WARM_LIGHT, color: "white", fontSize: 15, fontWeight: 800, padding: "14px 18px", width: "100%", marginBottom: shownIdeas.length ? 12 : 0, borderRadius: 6 }}
             >
               {shownIdeas.length === 0 ? "✦ Random ideas" : "✦ 3 more ideas"}
             </button>
           ) : (
-            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.25)", padding: "12px 18px", background: "rgba(255,255,255,0.05)", borderRadius: 6, marginBottom: 12 }}>
+            <div style={{ fontSize: 13, fontWeight: 600, color: "rgba(255,255,255,0.25)", padding: "12px 18px", background: WARM_LIGHT, borderRadius: 6, marginBottom: 12 }}>
               No more ideas
             </div>
           )}
           {shownIdeas.length > 0 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
               {shownIdeas.map((idea, i) => (
-                <div key={i} style={{ padding: "7px 14px", borderRadius: 999, fontSize: 14, fontWeight: 700, background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.12)" }}>
+                <div key={i} style={{ padding: "7px 14px", borderRadius: 999, fontSize: 14, fontWeight: 700, background: WARM_LIGHT, color: "rgba(255,255,255,0.65)", border: "1px solid rgba(255,255,255,0.12)" }}>
                   {idea}
                 </div>
               ))}
@@ -1008,7 +1009,7 @@ function ChainModal({ chain, players, onClose }) {
         <div style={{ fontSize: 20, fontWeight: 900, color: "white" }}>{chain.owner.name}'s chain</div>
         <button
           onClick={onClose}
-          style={{ background: "rgba(255,255,255,0.15)", color: "white", width: 36, height: 36, borderRadius: "50%", fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
+          style={{ background: WARM_LIGHT, color: "white", width: 36, height: 36, borderRadius: "50%", fontSize: 20, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}
         >×</button>
       </div>
       <div style={{ flex: 1, overflowY: "auto", padding: "20px 24px 0" }}>
@@ -1021,7 +1022,7 @@ function ChainModal({ chain, players, onClose }) {
         <div style={{ maxWidth: 480, margin: "0 auto" }}>
           <button
             onClick={onClose}
-            style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 16, fontWeight: 700, padding: "16px", width: "100%", borderRadius: 8 }}
+            style={{ background: WARM_LIGHT, color: "white", fontSize: 16, fontWeight: 700, padding: "16px", width: "100%", borderRadius: 8 }}
           >Close</button>
         </div>
       </div>

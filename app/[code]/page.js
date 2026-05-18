@@ -5,7 +5,9 @@ import { useRouter } from "next/navigation"
 import { supabase } from "../../lib/supabase"
 
 const BG = "#1A3A5C"
+const DARK = "#0E2645"
 const YELLOW = "#FBDF54"
+const WARM_LIGHT = "#205673"
 const MIN_PLAYERS = 4
 
 const WORDS_A = [
@@ -43,7 +45,7 @@ function saveProfile(profile) {
 }
 
 const inputStyle = {
-  background: "rgba(255,255,255,0.15)",
+  background: WARM_LIGHT,
   color: "white",
   fontSize: 20,
   padding: "16px 18px",
@@ -200,7 +202,7 @@ export default function Lobby({ params }) {
         <p style={{ fontSize: 16, opacity: 0.55, fontWeight: 500, marginBottom: 32, color: "white" }}>
           {gameJustFinished ? "The lobby will open shortly." : "This page will update when the game ends."}
         </p>
-        <button onClick={loadState} style={{ background: "rgba(255,255,255,0.15)", color: "white", fontSize: 16, fontWeight: 700, padding: "14px 24px" }}>Refresh</button>
+        <button onClick={loadState} style={{ background: WARM_LIGHT, color: "white", fontSize: 16, fontWeight: 700, padding: "14px 24px" }}>Refresh</button>
       </div>
     )
   }
@@ -229,7 +231,7 @@ export default function Lobby({ params }) {
             if (navigator.share) await navigator.share({ title: `Join Exquisite Corpse — ${code}`, url })
             else { await navigator.clipboard.writeText(url); alert("Link copied!") }
           }}
-          style={{ background: "rgba(255,255,255,0.12)", color: "white", fontSize: 13, fontWeight: 800, padding: "10px 16px", flexShrink: 0, marginTop: 4 }}
+          style={{ background: WARM_LIGHT, color: "white", fontSize: 13, fontWeight: 800, padding: "10px 16px", flexShrink: 0, marginTop: 4 }}
         >
           Invite
         </button>
@@ -290,7 +292,7 @@ export default function Lobby({ params }) {
         <div style={{ fontSize: 11, fontWeight: 800, textTransform: "uppercase", letterSpacing: "0.15em", color: "rgba(255,255,255,0.4)", marginBottom: 14 }}>
           Players
         </div>
-        <div style={{ background: "rgba(0,0,0,0.28)", padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
+        <div style={{ background: DARK, padding: "4px 14px 10px", borderTop: "3px solid rgba(255,255,255,0.30)" }}>
           {humanPlayers.length === 0 && (
             <div style={{ fontSize: 14, opacity: 0.4, fontStyle: "italic", paddingTop: 10 }}>No players yet</div>
           )}
@@ -342,7 +344,7 @@ export default function Lobby({ params }) {
                   </div>
                   <div style={{
                     padding: "10px 14px", flex: 1,
-                    background: "rgba(255,255,255,0.08)",
+                    background: WARM_LIGHT,
                     display: "flex", alignItems: "center",
                   }}>
                     <span style={{ fontSize: 16, fontWeight: 700, color: "white" }}>
@@ -356,7 +358,7 @@ export default function Lobby({ params }) {
             <div style={{ display: "flex", gap: 8 }}>
               <button
                 onClick={() => setConfirmingStart(false)}
-                style={{ flex: 1, background: "rgba(255,255,255,0.12)", color: "white", fontSize: 17, fontWeight: 800, padding: "16px" }}
+                style={{ flex: 1, background: WARM_LIGHT, color: "white", fontSize: 17, fontWeight: 800, padding: "16px" }}
               >
                 Cancel
               </button>
